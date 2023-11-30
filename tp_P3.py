@@ -1,6 +1,6 @@
 import tkinter as tk
 import csv
-from tp2_P1 import crear_usuario, crear_clave, registro, comparar_inicio_sesion, recuperar_clave
+from tp2_P1 import crear_usuario, crear_clave, registro, comparar_inicio_sesion, recuperar_clave, usuario_global, obtener_usuario,obtener_pregunta_byid
 from tp_P1 import cifrado_cesar, descifrado_cesar
 from tp_P2 import cifrado_atbash
 
@@ -50,6 +50,47 @@ def ventana_bienvenida():
 def ventana_iniciar_sesion():
     global ventana_actual
     cerrar_ventana_actual()
+
+    def ventana_recuperar_clave():
+        usuario = entrada_usuario.get()
+        clave = entrada_clave.get()
+        respuesta = entrada_respuesta.get()
+        respuesta_correcta_ = recuperar_clave(usuario,clave)
+        label_resultado.config(text=respuesta_correcta)
+
+        obtener_usuario(usuario,clave)
+        if usuario_global['estado_login'] != 'recuperar':
+            return
+        pregunta_id = usuario_global["id_pregunta"]
+        pregunta_encontrada = obtener_pregunta_byid(pregunta_id)
+
+        ventana_actual = tk.Tk()
+        ventana_actual.geometry("300x300")
+        ventana_actual.title("Recuperación Clave")
+        ventana_actual.config(bg="navajo white")
+
+        label_pregunta = tk.Label(ventana_actual, text=f"Pregunta: {pregunta_encontrada}")
+        label_pregunta.config(bg="navajo white")
+        label_pregunta.pack()
+
+        label_respuesta = tk.Label(ventana_actual, text="Ingrese la respuesta:")
+        label_respuesta.config(bg="navajo white")
+        label_respuesta.pack()
+        entrada_respuesta = tk.Entry(ventana_actual)
+        entrada_respuesta.pack()
+
+        boton_verificar_respuesta = tk.Button(ventana_actual, text="Verificar Respuesta")
+        boton_verificar_respuesta.config(bg="orange")
+        boton_verificar_respuesta.pack(padx=5, pady=10)
+
+        label_pregunta = tk.Label(ventana_actual, text=f"Contraseña:{respuesta_correcta}")
+        label_pregunta.config(bg="navajo white")
+        label_pregunta.pack()
+
+        label_resultado = tk.Label(ventana_actual, text="")
+        label_resultado.config(bg="navajo white")
+        label_resultado.pack()
+
     def iniciar_sesion():
         usuario = entrada_usuario.get()
         clave = entrada_clave.get()
@@ -81,31 +122,9 @@ def ventana_iniciar_sesion():
     boton_recuperar_clave.config(bg="orange")
     boton_recuperar_clave.pack(padx=5,pady=10)
 
-    label_resultado = tk.Label(ventana_actual, text="")
-    label_resultado.config(bg="navajo white")
-    label_resultado.pack()
-
-def ventana_recuperar_clave(usuario):
-    var_usuario=usuario.get()
-    ventana_actual = tk.Tk()
-    ventana_actual.geometry("300x300")
-    ventana_actual.title("Recuperación Clave")
-    ventana_actual.config(bg="navajo white")
-
-    label_pregunta = tk.Label(ventana_actual, text=f"Pregunta: {var_usuario}")
-    label_pregunta.config(bg="navajo white")
-    label_pregunta.pack()
-
-    label_respuesta = tk.Label(ventana_actual, text="Ingrese la respuesta:")
-    label_respuesta.config(bg="navajo white")
-    label_respuesta.pack()
-
-    entrada_respuesta = tk.Entry(ventana_actual)
-    entrada_respuesta.pack()
-
-    boton_verificar_respuesta = tk.Button(ventana_actual, text="Verificar Respuesta")
-    boton_verificar_respuesta.config(bg="orange")
-    boton_verificar_respuesta.pack(padx=5, pady=10)
+    boton_volver = tk.Button(ventana_actual, text="Volver", command=ventana_bienvenida)
+    boton_volver.config(bg="orange")
+    boton_volver.pack(padx=5,pady=10)
 
     label_resultado = tk.Label(ventana_actual, text="")
     label_resultado.config(bg="navajo white")
@@ -118,12 +137,13 @@ def ventana_crear_usuario():
         usuario = entrada_usuario.get()
         clave = entrada_clave.get()
         respuesta = entrada_respuesta.get()
+        cant_intentos = 0
         pregunta = var.get()
         if not pregunta or pregunta == 'Elija una Opción':
             label_resultado.config(text="¡Por favor, elija una pregunta!")
             return
         indice = int(pregunta.split('.')[0])
-        registro_creado = registro(usuario,clave, respuesta, pregunta)
+        registro_creado = registro(usuario,clave, respuesta, indice, cant_intentos)
         label_resultado.config(text=registro_creado)
 
     preguntas = []
@@ -166,6 +186,10 @@ def ventana_crear_usuario():
     boton_crear_usuario = tk.Button(ventana_actual, text="Regitrarse", command=registrarse)
     boton_crear_usuario.config(bg="orange")
     boton_crear_usuario.pack(padx=5,pady=10)
+
+    boton_volver = tk.Button(ventana_actual, text="Volver", command=ventana_bienvenida)
+    boton_volver.config(bg="orange")
+    boton_volver.pack(padx=5,pady=10)
 
     label_resultado = tk.Label(ventana_actual, text="")
     label_resultado.config(bg="navajo white")

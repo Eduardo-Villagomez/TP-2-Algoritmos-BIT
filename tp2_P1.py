@@ -1,4 +1,6 @@
 import csv
+usuario_global = {}
+
 def crear_usuario(usuario):
     """
     >>> crear_usuario('Foco120.')
@@ -93,7 +95,7 @@ def crear_clave(clave):
             validar_clave = True
     return validar_clave
 
-def registro(usuario,clave,respuesta,pregunta):
+def registro(usuario,clave,respuesta,indice,cant_intentos):
     validar_clave = crear_clave(clave)
     validar_usuario = crear_usuario(usuario)
     usuarios=[]
@@ -103,10 +105,10 @@ def registro(usuario,clave,respuesta,pregunta):
             for fila in lector_csv:
                 usuarios.append(fila[0])
                 if usuario in usuarios:
-                    return "Identificador en Uso"   
+                    return "Identificador en Uso"
         with open('registro.csv', 'a', newline='') as archivo:
             escritor_csv = csv.writer(archivo)
-            escritor_csv.writerow([usuario,clave,pregunta,respuesta])
+            escritor_csv.writerow([usuario,clave,indice,respuesta,cant_intentos])
 
         valido = "Registro Exitoso"
     else:
@@ -125,33 +127,93 @@ def registro(usuario,clave,respuesta,pregunta):
     
     return valido
 
-def comparar_inicio_sesion(usuario,clave):
-    TEXTO_RESULTADO_INICIO_SESION = ""
-    valores = []
+def obtener_usuario(usuario_login,clave_login):
     with open('registro.csv', newline='') as archivo_csv:
         lector_csv = csv.reader(archivo_csv)
         for fila in lector_csv:
-            valores.append(fila[:2])
+            nombre = fila[0]
+            clave = fila[1]
+            id_pregunta = fila[2]
+            respuesta = fila[3]
+            intentos_recuperacion = int(fila[4])
+            if nombre == usuario_login and clave != clave_login:
+                usuario_global["id_pregunta"] = id_pregunta
+                usuario_global["respuesta"] = respuesta
+                usuario_global["intentos_recuperacion"] = intentos_recuperacion
+                usuario_global['estado_login'] = 'recuperar'
+                break
+            elif nombre == usuario_login and clave == clave_login:
+                if intentos_recuperacion >= 3:
+                    usuario_global['estado_login'] = 'bloqueado'
+                else:
+                    usuario_global["nombre"] = nombre
+                    usuario_global["clave"] = clave
+                    usuario_global["id_pregunta"] = id_pregunta
+                    usuario_global["respuesta"] = respuesta
+                    usuario_global['estado_login'] = 'exitoso'
+                break
+            else:
+                usuario_global['estado_login'] = 'fallido'
+    print(usuario_global)
+        
+def obtener_pregunta_byid(id):
+    pregunta_obtenida = ""
+    with open('preguntas.csv', newline='') as archivo_csv:
+        lector_csv = csv.reader(archivo_csv)
+        for fila in lector_csv:
+            if fila[0] == id:
+                pregunta_obtenida = fila[1]
+                break
+    return pregunta_obtenida
 
+def comparar_inicio_sesion(usuario,clave):
+    TEXTO_RESULTADO_INICIO_SESION = ""
+    obtener_usuario(usuario_login=usuario,clave_login=clave)
     index = 0
-    TEXTO_RESULTADO_INICIO_SESION = "Identificador inexistente o clave errónea\n\n Si no se encuentra registrado debe registrarse previamente\n o si olvidaste la clave presiona el botón recuperar clave"
-
-    while index < len(valores) and not (usuario == valores[index][0] and clave == valores[index][1]):
+    if usuario_global["estado_login"] == "fallido":
         index += 1
-
-    if index < len(valores):
+        TEXTO_RESULTADO_INICIO_SESION = "Identificador inexistente o clave errónea\n\n Si no se encuentra registrado debe registrarse previamente\no si olvidaste la clave presiona el botón recuperar clave"
+    elif usuario_global["estado_login"] == "exitoso":
         TEXTO_RESULTADO_INICIO_SESION = "Inicio de sesión exitoso"
+    elif usuario_global["estado_login"] == "bloqueado":
+        TEXTO_RESULTADO_INICIO_SESION = "Este usuario se encuentra bloqueado"
+    else:
+        TEXTO_RESULTADO_INICIO_SESION = "si olvidaste la clave presiona el botón recuperar clave"
 
     return TEXTO_RESULTADO_INICIO_SESION
 
-def recuperar_clave(id_pregunta, respuesta):
+def recuperar_clave(nombre, respuesta):
+    filename = 'my.csv'
+    tempfile = NamedTemporaryFile(mode='w', delete=False)
+    
+    fields = ['ID', 'Name', 'Course', 'Year']
+    
+    with open(filename, 'r') as csvfile, tempfile:
+        reader = csv.DictReader(csvfile, fieldnames=fields)
+        writer = csv.DictWriter(tempfile, fieldnames=fields)
+        for row in reader:
+            if row['ID'] == str(stud_ID):
+                print('updating row', row['ID'])
+                row['Name'], row['Course'], row['Year'] = stud_name, stud_course, stud_year
+            row = {'ID': row['ID'], 'Name': row['Name'], 'Course': row['Course'], 'Year': row['Year']}
+            writer.writerow(row)
+    
+    shutil.move(tempfile.name, filename)
+    
     with open('registro.csv', newline='') as archivo_csv:
         lector_csv = csv.reader(archivo_csv)
         for fila in lector_csv:
-            usuario_id = fila[2]
+            usuario_nombre = fila[0]
             usuario_respuesta = fila[3]
-
-            if usuario_id == id_pregunta and usuario_respuesta == respuesta:
-                return fila[1]  # Retorna la clave correspondiente
-
+            usuario_clave = fila[1]
+    
+            if usuario_nombre == nombre and usuario_respuesta == respuesta:
+                return usuario_clave  # Retorna la clave correspondiente
+            elif:
+                pass
+    
+    with open('registro.csv', 'a', newline='') as archivo:
+        escritor_csv = csv.writer(archivo)
+        escritor_csv.writerow([usuario,clave,indice,respuesta,cant_intentos])
+    
     return "Respuesta incorrecta o usuario no encontrado"
