@@ -1,6 +1,6 @@
 import tkinter as tk
 import csv
-from tp2_P1 import crear_usuario, crear_clave, registro, comparar_inicio_sesion, recuperar_clave, usuario_global, obtener_usuario,obtener_pregunta_byid
+from tp2_P1 import crear_usuario, crear_clave, registro, obtener_clave_byrespuesta, comparar_inicio_sesion, recuperar_clave, usuario_global, obtener_usuario,obtener_pregunta_byid
 from tp_P1 import cifrado_cesar, descifrado_cesar
 from tp_P2 import cifrado_atbash
 
@@ -52,15 +52,17 @@ def ventana_iniciar_sesion():
     cerrar_ventana_actual()
 
     def ventana_recuperar_clave():
+        def verificar_respuesta():
+            respuesta = entrada_respuesta.get()
+            clave_encontrada = obtener_clave_byrespuesta(respuesta_login=respuesta)
+            label_pregunta.config(text=clave_encontrada)
         usuario = entrada_usuario.get()
         clave = entrada_clave.get()
-        respuesta = entrada_respuesta.get()
-        respuesta_correcta_ = recuperar_clave(usuario,clave)
-        label_resultado.config(text=respuesta_correcta)
-
-        obtener_usuario(usuario,clave)
+        obtener_usuario(usuario_login=usuario,clave_login=clave)
+        
         if usuario_global['estado_login'] != 'recuperar':
             return
+        
         pregunta_id = usuario_global["id_pregunta"]
         pregunta_encontrada = obtener_pregunta_byid(pregunta_id)
 
@@ -79,11 +81,11 @@ def ventana_iniciar_sesion():
         entrada_respuesta = tk.Entry(ventana_actual)
         entrada_respuesta.pack()
 
-        boton_verificar_respuesta = tk.Button(ventana_actual, text="Verificar Respuesta")
+        boton_verificar_respuesta = tk.Button(ventana_actual, text="Verificar Respuesta", command=verificar_respuesta)
         boton_verificar_respuesta.config(bg="orange")
         boton_verificar_respuesta.pack(padx=5, pady=10)
 
-        label_pregunta = tk.Label(ventana_actual, text=f"Contraseña:{respuesta_correcta}")
+        label_pregunta = tk.Label(ventana_actual, text=f"Contraseña: ")
         label_pregunta.config(bg="navajo white")
         label_pregunta.pack()
 
