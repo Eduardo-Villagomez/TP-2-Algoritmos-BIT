@@ -35,8 +35,3 @@ def cifrado_atbash(mensaje):
         else:
             resultado += caracter
     return resultado
-
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()

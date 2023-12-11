@@ -64,7 +64,3 @@ def descifrado_cesar(mensaje_cifrado, clave):
     'La respuesta es 42.'
     """
     return cifrado_cesar(mensaje_cifrado, -clave)
-
-if __name__ == "__main__":
-    import doctest
-    doctest.testmod()
